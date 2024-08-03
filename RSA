@@ -1,0 +1,86 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+
+// Function to compute gcd
+int gcd(int a, int b) {
+    while (b != 0) {
+        int t = b;
+        b = a % b;
+        a = t;
+    }
+    return a;
+}
+
+// Function to compute the modular exponentiation
+long long int mod_exp(long long int base, long long int exp, long long int mod) {
+    long long int result = 1;
+    base = base % mod;
+    while (exp > 0) {
+        if (exp % 2 == 1)
+            result = (result * base) % mod;
+        exp = exp >> 1;
+        base = (base * base) % mod;
+    }
+    return result;
+}
+
+// Function to generate keys
+void generate_keys(int *p, int *q, int *n, int *e, int *d, int *phi) {
+    // Choose prime numbers
+    *p = 61;  // First prime number (can be changed)
+    *q = 53;  // Second prime number (can be changed)
+
+    // Calculate n
+    *n = (*p) * (*q);
+
+    // Calculate φ
+    *phi = (*p - 1) * (*q - 1);
+
+    // Choose e
+    *e = 3;
+    while (gcd(*e, *phi) != 1) {
+        (*e)++;
+    }
+
+    // Compute d, the mod inverse of e
+    int k = 1;
+    while (1) {
+        if ((1 + k * (*phi)) % (*e) == 0) {
+            *d = (1 + k * (*phi)) / (*e);
+            break;
+        }
+        k++;
+    }
+}
+
+// Function to encrypt the message
+long long int encrypt(int msg, int e, int n) {
+    return mod_exp(msg, e, n);
+}
+
+// Function to decrypt the message
+long long int decrypt(long long int cipher, int d, int n) {
+    return mod_exp(cipher, d, n);
+}
+
+int main() {
+    int p, q, n, e, d, phi;
+    generate_keys(&p, &q, &n, &e, &d, &phi);
+
+    printf("Prime numbers (p, q): (%d, %d)\n", p, q);
+    printf("Public Key: (n=%d, e=%d)\n", n, e);
+    printf("Private Key: (d=%d)\n", d);
+
+    int message;
+    printf("Enter a message to encrypt (as an integer): ");
+    scanf("%d", &message);
+
+    long long int encrypted_message = encrypt(message, e, n);
+    printf("Encrypted Message: %lld\n", encrypted_message);
+
+    long long int decrypted_message = decrypt(encrypted_message, d, n);
+    printf("Decrypted Message: %lld\n", decrypted_message);
+
+    return 0;
+}
